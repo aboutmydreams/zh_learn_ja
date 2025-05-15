@@ -1,0 +1,20 @@
+[project]
+name = "zh-learn-ja"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "aboutmydreams",email = "aboutmydreams@163.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pykakasi (>=2.3.0,<3.0.0)",
+    "jaconv (>=0.4.0,<0.5.0)",
+    "lxml (>=5.4.0,<6.0.0)",
+    "way3 (>=1.0.4,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
