@@ -2,6 +2,8 @@ import xml.etree.ElementTree as ET
 import jaconv
 import way3
 import json
+import pandas as pd
+from zh_learn_ja.identify_reading_type import identify_reading_type
 
 current_dir = way3.get_current_dir(__file__)
 
@@ -758,7 +760,7 @@ sorted_readings = sorted(
 )
 
 
-def get_hiragana_kanji(target_hiragana, fitter="N1"):
+def get_hiragana_kanji(target_hiragana, level_fitter="N1", identify_reading_fitter=[]):
     # 目标五十音 target_hiragana = "たみ"
 
     # 存储匹配的汉字
@@ -789,15 +791,37 @@ def get_hiragana_kanji(target_hiragana, fitter="N1"):
         if target_hiragana in readings:
             matching_kanji.append(kanji)
 
-    if fitter in ["N1", "N2", "N3", "N4", "N5"]:
+    if level_fitter in ["N1", "N2", "N3", "N4", "N5"]:
         # 如果是合法的平假名，则返回对应的汉字
         word_data = way3.read_file(f"{current_dir}/data/jlpt_kanji_lists.json").content
-        use_data = json.loads(word_data).get(fitter)
+        use_data = json.loads(word_data).get(level_fitter)
         matching_kanji = list(set(use_data) & set(matching_kanji))
 
-    print(f"五十音 '{target_hiragana}' 对应的汉字：{matching_kanji}")
+    if identify_reading_fitter and len(identify_reading_fitter) > 0:
+        # 如果是合法的读音，则返回对应的汉字
+        on_list = []
+        for this_kanji in matching_kanji:
+            reading_type = identify_reading_type(this_kanji, target_hiragana)
+            if reading_type in identify_reading_fitter:
+                on_list.append(this_kanji)
+        matching_kanji = on_list
+
+    print(f" '{target_hiragana}'：\n {matching_kanji} \n\n")
     return matching_kanji
 
 
-for reading in all_readings:
-    get_hiragana_kanji(reading)
+def get_reading_csv_by_type(identify_reading_fitter=None, min_word_count=5):
+    store_dic = {}
+    for one_reading in sorted_readings:
+        matching_kanji = get_hiragana_kanji(
+            one_reading,
+            level_fitter="N1",
+            identify_reading_fitter=identify_reading_fitter,
+        )
+        matching_kanji_str = ", ".join(matching_kanji)
+        if matching_kanji_str != "" and len(matching_kanji) >= min_word_count:
+            store_dic[one_reading] = matching_kanji_str
+    return store_dic
+
+
+# print(get_reading_csv_by_type())
